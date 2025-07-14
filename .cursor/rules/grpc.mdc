@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Cursor Rules – gRPC
+
+API Definition & Protos
+	•	Define services and messages in .proto files; keep them source-controlled.
+	•	Use clear, versioned package namespaces (api.v1).
+	•	Prefer explicit field numbers and reserve removed tags.
+	•	Mark optional fields; avoid required to maintain compatibility.
+	•	Document RPC methods with concise comments above declarations.
+
+Service Design
+	•	Keep RPC granular; avoid chatty method splitting.
+	•	Favor unary calls; use streaming for large or real-time transfers.
+	•	Model long-running jobs with server-side streaming progress updates.
+	•	Set sensible deadlines on clients; propagate via context.
+
+Error Handling
+	•	Return standardized grpc.Status codes; map domain errors accordingly.
+	•	Include machine-readable error_details for actionable responses.
+	•	Avoid using UNKNOWN; choose most specific status code.
+
+Performance & Streaming
+	•	Compress payloads with grpc-encoding: gzip for large messages.
+	•	Enable HTTP/2 keep-alive pings to detect dead peers.
+	•	Chunk large streams; respect flow-control windows to prevent back-pressure.
+	•	Reuse channel connections; maintain connection pools for high-QPS clients.
+
+Tooling & CI
+	•	Auto-generate client/server stubs during build; commit generated code only in vendoring cases.
+	•	Run buf lint and prototool in CI to enforce style and breaking-change checks.
+	•	Include golden proto examples and backward-compat tests per release.

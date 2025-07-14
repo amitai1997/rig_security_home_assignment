@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+General Principles
+	•	Adopt one canonical style guide per language and repository.
+	•	Automate style enforcement; avoid subjective review debates.
+	•	Run lightweight checks locally before committing.
+	•	Document linter, formatter, type-checker usage in README.
+
+Linting
+	•	Enable linters with high severity thresholds; warn on stylistic issues.
+	•	Fail CI on errors; block merges until resolved.
+	•	Configure rule overrides centrally, version-controlled.
+	•	Add custom plugins to capture domain-specific smells.
+
+Formatting
+	•	Use opinionated, zero-config formatters (Black, Prettier, gofmt).
+	•	Reformat entire file on save or pre-commit.
+	•	Keep line length consistent with tooling default (e.g., 88 for Python).
+	•	Do not mix formatting changes with functional commits.
+
+Type Checking
+	•	Annotate public functions, classes, and exported symbols.
+	•	Run static type checker in strict or incremental mode.
+	•	Treat type errors as build-breaking defects.
+	•	Prefer precise generics over Any; embrace gradual typing where needed.
+
+Automation & CI
+	•	Install tools via pinned versions in lockfiles.
+	•	Integrate pre-commit hooks running lint, format, and type checks.
+	•	Cache tool environments to speed CI pipelines.
+	•	Generate badge displaying build and lint status in README.
