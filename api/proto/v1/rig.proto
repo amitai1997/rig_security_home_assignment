@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package rig.v1;
+
+option go_package = "github.com/example/rig-security-svc/api/proto/v1;v1";
+
+service RepositoryService {
+    rpc ListRepositories(ListRepositoriesRequest) returns (ListRepositoriesResponse);
+}
+
+message ListRepositoriesRequest {
+    string github_org = 1;
+}
+
+message ListRepositoriesResponse {
+    repeated RepositoryReport repositories = 1;
+}
+
+message RepositoryReport {
+    string name = 1;
+    repeated PolicyViolation violations = 2;
+}
+
+message PolicyViolation {
+    string username = 1;
+    string permission = 2;
+    string rule = 3;
+}
