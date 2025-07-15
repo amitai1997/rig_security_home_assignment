@@ -26,3 +26,6 @@ go.work.sum
 # Build output
 rig-security-svc
 server
+
+.gemini/
+GEMINI.md
