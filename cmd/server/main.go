@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	pb "github.com/example/rig-security-svc/api/proto/v1"
 	"github.com/example/rig-security-svc/internal/config"
@@ -35,6 +36,7 @@ func main() {
 
 	server := grpc.NewServer()
 	pb.RegisterRepositoryServiceServer(server, service.NewRepositoryService(client, engine))
+	reflection.Register(server)
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
