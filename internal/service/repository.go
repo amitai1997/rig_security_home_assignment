@@ -4,6 +4,9 @@ import (
 	"context"
 	"sync"
 
+	"github.com/google/uuid"
+	"log/slog"
+
 	pb "github.com/example/rig-security-svc/api/proto/v1"
 	"github.com/example/rig-security-svc/internal/githook"
 	"github.com/example/rig-security-svc/internal/policy"
@@ -23,8 +26,13 @@ func NewRepositoryService(c githook.Client, e policy.Engine) *RepositoryService 
 
 // ListRepositories implements the core logic.
 func (s *RepositoryService) ListRepositories(ctx context.Context, req *pb.ListRepositoriesRequest) (*pb.ListRepositoriesResponse, error) {
+	reqID := uuid.New().String()
+	logger := slog.With("request_id", reqID, "org", req.GetGithubOrg())
+	logger.Info("handling list repositories request")
+
 	repos, err := s.client.ListOrgRepositories(ctx, req.GetGithubOrg())
 	if err != nil {
+		logger.Error("list repositories", "error", err)
 		return nil, err
 	}
 
@@ -33,14 +41,18 @@ func (s *RepositoryService) ListRepositories(ctx context.Context, req *pb.ListRe
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
+	sem := make(chan struct{}, 5)
 
 	for i, r := range repos {
 		resp.Repositories[i] = &pb.RepositoryReport{Name: r.Name}
 		wg.Add(1)
 		go func(idx int, repo githook.Repository) {
 			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
 			collaborators, err := s.client.ListCollaborators(ctx, req.GetGithubOrg(), repo.Name)
 			if err != nil {
+				logger.Error("list collaborators", "repo", repo.Name, "error", err)
 				return
 			}
 			for _, c := range collaborators {
@@ -55,10 +67,12 @@ func (s *RepositoryService) ListRepositories(ctx context.Context, req *pb.ListRe
 					Rule:       v.Rule,
 				})
 				mu.Unlock()
+				logger.Info("policy violation", "repo", repo.Name, "user", v.Username, "permission", v.Permission)
 			}
 		}(i, r)
 	}
 
 	wg.Wait()
+	logger.Info("completed request")
 	return resp, nil
 }

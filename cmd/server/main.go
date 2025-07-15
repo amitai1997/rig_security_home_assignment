@@ -1,11 +1,11 @@
 package main
 
 import (
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -14,16 +14,23 @@ import (
 	"github.com/example/rig-security-svc/internal/githook"
 	"github.com/example/rig-security-svc/internal/policy"
 	"github.com/example/rig-security-svc/internal/service"
+	"golang.org/x/time/rate"
+	"log/slog"
 )
 
 func main() {
-	cfg := config.LoadFromEnv()
-	_ = cfg
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 
-	client := githook.MockClient{}
+	cfg := config.LoadFromEnv()
+
+	limiter := rate.NewLimiter(rate.Every(time.Second), 1)
+	client := githook.NewRealClient(cfg.GitHubToken, limiter)
+
 	engine, err := policy.NewEngine("permission == 'admin'")
 	if err != nil {
-		log.Fatalf("failed to init policy engine: %v", err)
+		logger.Error("init engine", "error", err)
+		return
 	}
 
 	server := grpc.NewServer()
@@ -31,12 +38,14 @@ func main() {
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Error("listen", "error", err)
+		return
 	}
 
 	go func() {
+		logger.Info("server started", "addr", lis.Addr())
 		if err := server.Serve(lis); err != nil {
-			log.Fatalf("server exited: %v", err)
+			logger.Error("server exited", "error", err)
 		}
 	}()
 
