@@ -30,3 +30,4 @@ server
 .gemini/
 GEMINI.md
 .cursorignore
+.cursor/
