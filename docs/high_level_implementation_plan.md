@@ -1,4 +1,4 @@
-Of course. Here is a comprehensive and detailed implementation plan for the Go home-assignment repository. This plan is designed to guide an AI agent through a four-day development sprint, ensuring adherence to best practices and the specific requirements of the task.
+Of course. Here is a comprehensive and detailed implementation plan for the Go home-assignment repository. This plan is designed to guide an AI agent through a five-day development sprint, ensuring adherence to best practices and the specific requirements of the task.
 
 ## **Project Implementation Plan: Rig Security gRPC Service**
 
@@ -6,7 +6,7 @@ Of course. Here is a comprehensive and detailed implementation plan for the Go h
 
 This document outlines a detailed, five-stage implementation plan for the "Rig Security" home assignment. The primary objective is to develop a robust, high-quality gRPC service in Go that interacts with the GitHub API to list repositories and scan their access controls against a defined policy.
 
-This plan is engineered for a single developer working within a four-day sprint. The following principles are paramount and will guide all development decisions:
+This plan is engineered for a single developer working within a five-day sprint. The following principles are paramount and will guide all development decisions:
 
   * **Simplicity and Minimalism:** We will implement exactly the features required by the assignment—nothing more. The goal is a focused, clean solution, not a feature-rich, production-ready platform. This aligns with the 6-8 hour estimated timeline and avoids the "build your own system" trap identified in the task analysis.
   * **Adherence to Standards:** All code and configuration will strictly follow the provided `.cursor/rules/` guidelines. This ensures consistency in API design, architecture, testing, containerization, and Go-specific idioms.
@@ -141,7 +141,7 @@ The technology stack is chosen to be modern, performant, and idiomatic to the Go
 
 -----
 
-## **Stage 4: Containerization & Continuous Integration (Day 4, Morning)**
+## **Stage 4: Containerization & Continuous Integration (Day 4)**
 
 **Goal:** To package the service into a lightweight, secure Docker image and to automate all quality checks in a CI pipeline.
 
@@ -171,7 +171,7 @@ The technology stack is chosen to be modern, performant, and idiomatic to the Go
 
 -----
 
-## **Stage 5: Documentation & Final Polish (Day 4, Afternoon)**
+## **Stage 5: Documentation & Final Polish**
 
 **Goal:** To produce comprehensive documentation that makes the project easy to understand, set up, and use, and to perform a final quality check.
 
