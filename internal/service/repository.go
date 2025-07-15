@@ -24,7 +24,8 @@ func NewRepositoryService(c githook.Client, e policy.Engine) *RepositoryService 
 	return &RepositoryService{client: c, engine: e}
 }
 
-// ListRepositories implements the core logic.
+// ListRepositories returns repository reports for the requested organization.
+// It fetches repositories and scans each collaborator concurrently.
 func (s *RepositoryService) ListRepositories(ctx context.Context, req *pb.ListRepositoriesRequest) (*pb.ListRepositoriesResponse, error) {
 	reqID := uuid.New().String()
 	logger := slog.With("request_id", reqID, "org", req.GetGithubOrg())
@@ -36,43 +37,43 @@ func (s *RepositoryService) ListRepositories(ctx context.Context, req *pb.ListRe
 		return nil, err
 	}
 
-	resp := &pb.ListRepositoriesResponse{}
-	resp.Repositories = make([]*pb.RepositoryReport, len(repos))
+	resp := &pb.ListRepositoriesResponse{Repositories: make([]*pb.RepositoryReport, len(repos))}
 
 	var wg sync.WaitGroup
-	var mu sync.Mutex
 	sem := make(chan struct{}, 5)
-
 	for i, r := range repos {
-		resp.Repositories[i] = &pb.RepositoryReport{Name: r.Name}
 		wg.Add(1)
 		go func(idx int, repo githook.Repository) {
 			defer wg.Done()
 			sem <- struct{}{}
-			defer func() { <-sem }()
-			collaborators, err := s.client.ListCollaborators(ctx, req.GetGithubOrg(), repo.Name)
-			if err != nil {
-				logger.Error("list collaborators", "repo", repo.Name, "error", err)
-				return
-			}
-			for _, c := range collaborators {
-				v, err := s.engine.Scan(ctx, policy.Collaborator{Login: c.Login, Permission: c.Permission})
-				if err != nil || v == nil {
-					continue
-				}
-				mu.Lock()
-				resp.Repositories[idx].Violations = append(resp.Repositories[idx].Violations, &pb.PolicyViolation{
-					Username:   v.Username,
-					Permission: v.Permission,
-					Rule:       v.Rule,
-				})
-				mu.Unlock()
-				logger.Info("policy violation", "repo", repo.Name, "user", v.Username, "permission", v.Permission)
-			}
+			resp.Repositories[idx] = s.scanRepository(ctx, req.GetGithubOrg(), repo, logger)
+			<-sem
 		}(i, r)
 	}
 
 	wg.Wait()
 	logger.Info("completed request")
 	return resp, nil
+}
+
+func (s *RepositoryService) scanRepository(ctx context.Context, org string, repo githook.Repository, logger *slog.Logger) *pb.RepositoryReport {
+	report := &pb.RepositoryReport{Name: repo.Name}
+	collaborators, err := s.client.ListCollaborators(ctx, org, repo.Name)
+	if err != nil {
+		logger.Error("list collaborators", "repo", repo.Name, "error", err)
+		return report
+	}
+	for _, c := range collaborators {
+		v, err := s.engine.Scan(ctx, policy.Collaborator{Login: c.Login, Permission: c.Permission})
+		if err != nil || v == nil {
+			continue
+		}
+		report.Violations = append(report.Violations, &pb.PolicyViolation{
+			Username:   v.Username,
+			Permission: v.Permission,
+			Rule:       v.Rule,
+		})
+		logger.Info("policy violation", "repo", repo.Name, "user", v.Username, "permission", v.Permission)
+	}
+	return report
 }
