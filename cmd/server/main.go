@@ -28,7 +28,7 @@ func main() {
 	limiter := rate.NewLimiter(rate.Every(time.Second), 1)
 	client := githook.NewRealClient(cfg.GitHubToken, limiter)
 
-	engine, err := policy.NewEngine("permission == 'triage'")
+	engine, err := policy.NewEngine("permission == 'admin'")
 	if err != nil {
 		logger.Error("init engine", "error", err)
 		return
