@@ -1,0 +1,8 @@
+{
+    "selectedAuthType": "oauth-personal",
+    "theme": "Default",
+    "preferredEditor": "vscode",
+    "contextFileName": [
+      ".cursor/rules/*.mdc"
+    ]
+  }
