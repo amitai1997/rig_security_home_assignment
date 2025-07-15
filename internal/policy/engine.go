@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/checker/decls"
 )
 
 // Violation represents a policy violation.
@@ -35,10 +34,8 @@ type celEngine struct {
 // NewEngine compiles the given CEL expression.
 func NewEngine(policyExpr string) (Engine, error) {
 	env, err := cel.NewEnv(
-		cel.Declarations(
-			decls.NewVar("login", decls.String),
-			decls.NewVar("permission", decls.String),
-		),
+		cel.Variable("login", cel.StringType),
+		cel.Variable("permission", cel.StringType),
 	)
 	if err != nil {
 		return nil, err

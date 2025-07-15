@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  rig:
+    build: .
+    env_file: .env
+    ports:
+      - "50051:50051"
+    healthcheck:
+      test: ["CMD", "grpc-health-probe", "-addr=:50051"]
+      interval: 30s
+      retries: 3
+    restart: on-failure
