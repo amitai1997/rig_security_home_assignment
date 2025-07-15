@@ -10,7 +10,6 @@ import (
 	pb "github.com/example/rig-security-svc/api/proto/v1"
 	"github.com/example/rig-security-svc/internal/githook"
 	"github.com/example/rig-security-svc/internal/policy"
-	"golang.org/x/time/rate"
 )
 
 func TestIntegrationListRepositories(t *testing.T) {
@@ -19,7 +18,7 @@ func TestIntegrationListRepositories(t *testing.T) {
 	if org == "" || token == "" {
 		t.Skip("GITHUB_ORG or GITHUB_TOKEN not set")
 	}
-	client := githook.NewRealClient(token, rate.NewLimiter(rate.Every(rate.InfDuration), 1))
+	client := githook.NewRealClient(token, nil)
 	engine, err := policy.NewEngine("permission == 'admin'")
 	if err != nil {
 		t.Fatal(err)
